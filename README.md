@@ -9,9 +9,11 @@ This project showcases a CPU implementation of a raytracer in Python. It impleme
 - [Contact](#contact)
 
 ## Features
-- Basic Raytracing: 
-- Primatives: 
-- Light & Shadows: 
+- Basic Raytracing: A camera points down the +Z axis and maps rays from a canvas of image_width by image_height to a viewport of viewport_width by viewport height, located d distance away from the camera on the Z axis.
+- Primatives: Rays can collide with basic primitives. Currently, only spheres are implemented.
+- Light & Shadows: Point lights, directional lights, and ambient light sources are implemented. When lighting is calculated, rays are traced back to their light sources to check for shadows.
+- Reflections: 
+- Custom Inputs and File Handling: 
 
 ## Installation
 1. Clone the repository:
