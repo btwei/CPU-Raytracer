@@ -12,16 +12,19 @@ d = 1.0
 viewport_width = 1.3333333
 viewport_height = 0.75
 
+recursion_depth = 1
+
 BACKGROUND_COLOR = np.array([0,0,0,255])
 
 ## Object Types
 
 class Sphere:
-    def __init__(self, center, radius, color, specularity):
+    def __init__(self, center, radius, color, specularity, reflectivity):
         self.center = center
         self.radius = radius
         self.color = color
         self.specularity = specularity
+        self.reflectivity = reflectivity
 
 spheres = []
 
@@ -38,9 +41,9 @@ class PointLight():
 
 class DirectionalLight():
     def __init__(self, intensity, direction):
-        self.type = "ambient"
+        self.type = "directional"
         self.intensity = intensity
-        self.direction = direction
+        self.direction = np.array(direction)
 
 lights = []
 
@@ -48,7 +51,35 @@ lights = []
 def ScreenToViewport(x, y):
     return ((x-(image_width-1)/2)*viewport_width/(image_width-1), -1*(y-(image_height-1)/2)*viewport_height/(image_height-1), d)
 
-def TraceRay(origin, direction, t_min, t_max):
+def TraceRay(origin, direction, t_min, t_max, recursion_depth):
+    closest_object, closest_t = ClosestIntersection(origin, direction, t_min, t_max)
+    
+    if closest_object == None:
+        return BACKGROUND_COLOR
+    
+    point = origin + closest_t * np.array(direction)
+    # Only works with spheres
+    normal = point - closest_object.center
+    normal = normal / (np.sqrt(normal.dot(normal)))
+
+    color = np.array(closest_object.color) * ComputeLighting(point, normal,-1*np.array(direction), closest_object.specularity)
+    color[3] = 255
+
+    # Is lighting done or is there a reflective component to this point?
+    reflectivity = closest_object.reflectivity
+    if recursion_depth <= 0 or reflectivity <= 0:
+        return color
+
+    #Compute reflective component of lighting on this point
+    reflection_ray = ReflectRay(normal, -1*np.array(direction))
+    reflected_color = TraceRay(point, reflection_ray, 0.001, np.inf, recursion_depth - 1)
+
+    color = color * (1 - reflectivity) + reflected_color * reflectivity
+    color[3] = 255
+
+    return color
+
+def ClosestIntersection(origin, direction, t_min, t_max):
     closest_t = np.inf
     closest_object = None
 
@@ -61,18 +92,7 @@ def TraceRay(origin, direction, t_min, t_max):
             closest_t = t2
             closest_object = sphere
     
-    if closest_object == None:
-        return BACKGROUND_COLOR
-    
-    point = e + closest_t * np.array(direction)
-    # Only works with spheres
-    normal = point - closest_object.center
-    normal = normal / (np.sqrt(normal.dot(normal)))
-
-    color = np.array(closest_object.color) * ComputeLighting(point, normal,-1*np.array(direction), closest_object.specularity)
-    color[3] = 255
-
-    return color
+    return closest_object, closest_t
 
 def IntersectRaySphere(origin, direction, sphere):
     OC = origin - sphere.center
@@ -98,8 +118,15 @@ def ComputeLighting(point, normal, view_angle, specularity):
         else:
             if light.type == "point":
                 direction = light.position - point
+                t_max = 1
             else:
                 direction = light.direction
+                t_max = np.inf
+
+            # Check for shadows (blocking light ray), if so, skip this light source
+            shadow_object, shadow_t = ClosestIntersection(point, direction, 0.001, t_max)
+            if shadow_object != None:
+                continue
             
             # Diffuse Reflection
             diffuse_dot = np.dot(normal, direction)
@@ -108,22 +135,25 @@ def ComputeLighting(point, normal, view_angle, specularity):
 
             # Specular Reflection
             if specularity != -1:
-                reflection = 2 * normal * np.dot(normal, direction) - direction
+                reflection = ReflectRay(normal, direction)
                 specular_dot = np.dot(reflection, view_angle)
                 if specular_dot > 0:
                     intensity += light.intensity * np.pow(specular_dot/(np.sqrt(reflection.dot(reflection)) * np.sqrt(view_angle.dot(view_angle))), specularity)
     
     return intensity
 
+def ReflectRay(normal, ray):
+    return 2 * normal * np.dot(normal, ray) - ray
+
 ## Main Code
 
 image = Image.new("RGBA", (image_width, image_height), (0,0,0,0))
 
 #Add Test Geometry
-spheres.append(Sphere((0, -1, 3), 1, (255, 0, 0, 255), 500))
-spheres.append(Sphere((2, 0, 4), 1, (0, 0, 255, 255), 500))
-spheres.append(Sphere((-2, 0, 4), 1, (0, 255, 0, 255), 10))
-spheres.append(Sphere((0, -5001, 0), 5000, (255, 255, 0, 255), 1000))
+spheres.append(Sphere((0, -1, 3), 1, (255, 0, 0, 255), 500, 0.2))
+spheres.append(Sphere((2, 0, 4), 1, (0, 0, 255, 255), 500, 0.3))
+spheres.append(Sphere((-2, 0, 4), 1, (0, 255, 0, 255), 10, 0.4))
+spheres.append(Sphere((0, -5001, 0), 5000, (255, 255, 0, 255), 1000, 0.5))
 
 #Add Test Light Sources
 lights.append(AmbientLight(0.2))
@@ -134,7 +164,7 @@ for x in range(image_width):
     for y in range(image_height):
         direction = ScreenToViewport(x, y)
         # Color is a np array of floats from 0 to 255
-        color = TraceRay(e, direction, 1, np.inf)
+        color = TraceRay(e, direction, 1, np.inf, recursion_depth)
         # Restore color to an integer and format as a tuple for pillow
         color = tuple(np.round(color).astype(np.int64).tolist())
         image.putpixel((x,y), color)
