@@ -147,18 +147,63 @@ def ReflectRay(normal, ray):
 
 ## Main Code
 
+# Args and file i/o
+parser = argparse.ArgumentParser()
+parser.add_argument("inputfile", help="path to input file")
+args = parser.parse_args()
+
+f = open(args.inputfile, "r")
+lines = f.readlines()
+
+# Parse Input line by line
+for line in lines:
+    words = line.split()
+
+    if(len(words) == 0): continue
+
+    if(words[0] == "png"):
+        #Usage: png width height filename
+        if(len(words) < 4): continue
+        image_width = int(words[1])
+        image_height = int(words[2])
+        output_file = words[3]
+    if(words[0] == "viewport"):
+        #Usage: viewport vp_width vp_height
+        if(len(words) < 3): continue
+        viewport_width = float(words[1])
+        viewport_height = float(words[2])
+    elif(words[0] == "sphere"):
+        #Usage: sphere x y z radius r g b a specularity reflectivity
+        spheres.append(Sphere((float(words[1]), float(words[2]), float(words[3])), float(words[4]), (float(words[5]), float(words[6]), float(words[7]), float(words[8])), float(words[9]), float(words[10])))
+    elif(words[0] == "directional_light"):
+        #Usage: directional_light i x y z
+        if(len(words) < 5): continue
+        lights.append(DirectionalLight(0.2, (1, 4, 4)))
+    elif(words[0] == "point_light"):
+        #Usage: point_light i x y z
+        lights.append(PointLight(float(words[1]), (float(words[2]), float(words[3]), float(words[4]))))
+    elif(words[0] == "ambient_light"):
+        #Usage: ambient_light i
+        if(len(words) < 2): continue
+        lights.append(AmbientLight(float(words[1])))
+    elif(words[0] == "recursion_depth"):
+        if(len(words) < 2): continue
+        recursion_depth = int(words[1])
+
+print("Rendering Image.. (this can take a while, especially for larger images)")
+
 image = Image.new("RGBA", (image_width, image_height), (0,0,0,0))
 
 #Add Test Geometry
-spheres.append(Sphere((0, -1, 3), 1, (255, 0, 0, 255), 500, 0.2))
-spheres.append(Sphere((2, 0, 4), 1, (0, 0, 255, 255), 500, 0.3))
-spheres.append(Sphere((-2, 0, 4), 1, (0, 255, 0, 255), 10, 0.4))
-spheres.append(Sphere((0, -5001, 0), 5000, (255, 255, 0, 255), 1000, 0.5))
+spheres.append(Sphere((0, -2, 10), 1, (0, 255, 0, 255), 500, 0.2))
+spheres.append(Sphere((1, 0, 7), 1, (255, 0, 0, 255), 500, 0.3))
+spheres.append(Sphere((-2, 0, 5), 1, (0, 0, 255, 255), 10, 0.4))
+spheres.append(Sphere((0, -5001, 0), 5000, (255, 255, 255, 255), 1000, 0.5))
 
 #Add Test Light Sources
 lights.append(AmbientLight(0.2))
-lights.append(PointLight(0.6, (2, 1, 0)))
-lights.append(DirectionalLight(0.2, (1, 4, 4)))
+
+
 
 for x in range(image_width):
     for y in range(image_height):
