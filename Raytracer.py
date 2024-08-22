@@ -194,17 +194,6 @@ print("Rendering Image.. (this can take a while, especially for larger images)")
 
 image = Image.new("RGBA", (image_width, image_height), (0,0,0,0))
 
-#Add Test Geometry
-spheres.append(Sphere((0, -2, 10), 1, (0, 255, 0, 255), 500, 0.2))
-spheres.append(Sphere((1, 0, 7), 1, (255, 0, 0, 255), 500, 0.3))
-spheres.append(Sphere((-2, 0, 5), 1, (0, 0, 255, 255), 10, 0.4))
-spheres.append(Sphere((0, -5001, 0), 5000, (255, 255, 255, 255), 1000, 0.5))
-
-#Add Test Light Sources
-lights.append(AmbientLight(0.2))
-
-
-
 for x in range(image_width):
     for y in range(image_height):
         direction = ScreenToViewport(x, y)
