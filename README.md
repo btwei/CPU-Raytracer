@@ -34,32 +34,65 @@ This project displays a CPU implementation of a raytracer in Python. It implemen
 python3 Raytracer.py input.txt
 ```
 
-Input files are defined line by line with keywords followed by parameters:
+Input files are processed line by line, where each line containes a keywords followed by parameters. The format for each line is as follows:
 
-png
-Usage: png width height filename
+### Keywords and Usage
 
-viewport
-Usage: viewport vp_width vp_height
+- **`png`**
+  - **Usage:** `png width height filename`
+  - **Description:** Defines the output image with the specified width, height, and filename.
 
-sphere
-Usage: sphere x y z radius r g b a specularity reflectivity
-Notes: rgba range 0-255, reflectivity ranges 0(non-reflective) to 1(perfect mirror), and specularity scales exponentially over (0, infinity), use -1 to disable specularity
+- **`viewport`**
+  - **Usage:** `viewport vp_width vp_height`
+  - **Description:** Sets the viewport dimensions.
 
-directional_light
-Usage: directional_light i x y z
+- **`sphere`**
+  - **Usage:** `sphere x y z radius r g b a specularity reflectivity`
+  - **Description:** Creates a sphere with the given center coordinates `(x, y, z)`, radius, color in RGBA, specularity, and reflectivity.
+  - **Notes:**
+    - `r, g, b, a`: Color values range from 0 to 255.
+    - `reflectivity`: Ranges from 0 (non-reflective) to 1 (perfect mirror).
+    - `specularity`: Scales exponentially over `(0, infinity)`. Use `-1` to disable specularity.
 
-point_light
-Usage: point_light i x y z
+- **`directional_light`**
+  - **Usage:** `directional_light i x y z`
+  - **Description:** Defines a directional light with intensity `i` and direction `(x, y, z)`.
 
-ambient_light
-Usage: ambient_light i
+- **`point_light`**
+  - **Usage:** `point_light i x y z`
+  - **Description:** Specifies a point light source with intensity `i` located at `(x, y, z)`.
 
-recursion_depth
-Usage: recusion_depth depth
+- **`ambient_light`**
+  - **Usage:** `ambient_light i`
+  - **Description:** Sets the ambient light intensity.
+
+- **`recursion_depth`**
+  - **Usage:** `recursion_depth depth`
+  - **Description:** Specifies the recursion depth for rendering.
+
+### Example Input File
+
+```plaintext
+png 800 600 output.png
+viewport 1.1547 0.8660
+sphere 0 0 7 0.5 0 255 0 255 10 0.8
+sphere 0 1 7 0.5 255 0 0 255 10 0.5
+sphere 0 -1 7 0.5 0 0 255 255 10 0
+directional_light 0.4 1 0 0
+point_light 0.4 5 5 0
+ambient_light 0.2
+recursion_depth 5
+```
+
+### Notes
+
+- Ensure each line is formatted correctly to avoid processing errors.
+- Lines starting with `#` are treated as comments and ignored by the program.
 
 ## Examples
 ![example1.png](/examples/example1.png)
+
+![example2.png](/examples/example2.png)
 
 ## Contact
 Ben Wei - [ben.stwei@gmail.com](mailto:ben.stwei@gmail.com)

@@ -1,0 +1,20 @@
+png 1920 1080 example1.png
+viewport 1.333333 0.75
+
+#Spheres: x y z    radius     r   g   b   a    spec reflect
+
+sphere 0     0  10      1     0 255   0 255    500   0.2
+sphere 1     0  7      1   255   0   0 255    500   0.3
+sphere -2    0  5      1     0   0 255 255     10   0.4
+sphere 0 -5001  0   5000   255 255 255 255   1000   0.5
+
+#Ambient Lights: i
+#Point Lights: i x y z
+#Directional Lights: i x y z
+
+ambient_light     0.2
+point_light       0.6   2  1  0
+directional_light 0.2   1  4  4
+
+#Recursion Depth: d
+recursion_depth 3
